@@ -1,0 +1,31 @@
+<streams>
+    
+    <stream url="http://221.255.120.171/axis-cgi/jpg/image.cgi"/>
+    <stream url="http://87.245.130.3/anony/mjpg.cgi"/>
+    <stream url="http://108.20.75.6/anony/mjpg.cgi"/>
+    <stream url="http://71.33.228.73/anony/mjpg.cgi"/>
+    <stream url="http://148.61.142.228/axis-cgi/mjpg/video.cgi"/>
+    <stream url="http://kassertheatercam.montclair.edu/axis-cgi/mjpg/video.cgi"/>
+    <stream url="http://65.167.91.229/anony/mjpg.cgi"/>
+    <stream url="http://212.42.63.190/anony/mjpg.cgi"/>
+    <stream url="http://89.137.72.239/anony/mjpg.cgi"/>
+    <stream url="http://72.25.115.161/anony/mjpg.cgi"/>
+    <stream url="http://93.188.159.92/anony/mjpg.cgi"/>
+    <stream url="http://213.251.201.196/anony/mjpg.cgi"/>
+    <stream url="http://85.186.35.67/anony/mjpg.cgi"/>
+    <stream url="http://121.169.208.128/anony/mjpg.cgi"/>
+    <stream url="http://205.161.18.92/anony/mjpg.cgi"/>
+    <stream url="http://watch.sniffdoghotel.com/axis-cgi/mjpg/video.cgi"/>
+    <stream url="http://64.139.72.161/anony/mjpg.cgi"/>
+    <stream url="http://75.151.35.245/anony/mjpg.cgi"/>
+    <stream url="http://24.155.150.53/anony/mjpg.cgi"/>
+
+    <!--
+     <stream url="http://128.104.138.26/axis-cgi/mjpg/video.cgi"/>
+     <stream url="http://207.231.91.93/anony/mjpg.cgi"/>
+     <stream url="http://71.189.230.108/anony/mjpg.cgi"/>
+     <stream url="http://213.77.33.2:8080/axis-cgi/mjpg/video.cgi"/>
+     <stream url="http://129.171.176.150/axis-cgi/mjpg/video.cgi"/>
+     <stream url="http://216.8.159.21/axis-cgi/mjpg/video.cgi"/>
+     -->
+</streams>
