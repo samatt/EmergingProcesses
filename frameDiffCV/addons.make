@@ -1,5 +1,6 @@
 ofxOpenCv
 ofxXmlSettings
+ofxControlPanel
 ofxCv
 ofxIpVideoGrabber
 ofxSlitScan

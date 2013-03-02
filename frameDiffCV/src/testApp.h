@@ -5,6 +5,8 @@
 #include "ofxSlitScan.h"
 #include "ofxIpVideoGrabber.h"
 #include "ofxXmlSettings.h"
+#include "ofxAutoControlPanel.h"
+
 #define NUM_CAMERAS 1
 #define NUM_COLS 1
 #define NUM_ROWS 1
@@ -52,4 +54,11 @@ public:
 	// a scalar is like an ofVec4f but normally used for storing color information
     ofxSlitScan slitScan;
 	cv::Scalar diffMean;
+    ofxCv::FlowFarneback farneback;
+	ofxCv::FlowPyrLK pyrLk;
+    ofxCv::Flow* curFlow;
+    ofVec2f dampenedFlow;
+    
+    ofxAutoControlPanel panel;
+    
 };
