@@ -49,6 +49,7 @@ public:
     	ofPixels previousIP;
 	ofImage diff;
 	ofImage diffIP;
+    ofRectangle rect;
     vector<ofImage> diffs;
 	
 	// a scalar is like an ofVec4f but normally used for storing color information
@@ -58,6 +59,8 @@ public:
 	ofxCv::FlowPyrLK pyrLk;
     ofxCv::Flow* curFlow;
     ofVec2f dampenedFlow;
+    Boolean firstFrame;
+    ofColor  colors[640*480];
     
     ofxAutoControlPanel panel;
     

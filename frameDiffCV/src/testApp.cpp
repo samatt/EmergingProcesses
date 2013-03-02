@@ -4,6 +4,7 @@ using namespace cv;
 
 void testApp::setup() {
 	ofSetVerticalSync(true);
+    firstFrame = true;
     
     //Control Panel Setup
 	panel.setup(ofGetWidth()/2, 800);
@@ -26,7 +27,7 @@ void testApp::setup() {
 	panel.addSlider("qualityLevel", 0.01, 0.001, .02);
 	panel.addSlider("minDistance", 4, 1, 16);
     
-
+    
     //init slitScan stuff
     ofImage distortionMap;
     distortionMap.loadImage("hard_noise.png");
@@ -50,7 +51,7 @@ void testApp::setup() {
         ofAddListener(c->videoResized, this, &testApp::videoResized);
         ipGrabber.push_back(c);
     }
-
+    diffIP.allocate(640, 480, OF_IMAGE_COLOR);
 	cam.initGrabber(640, 480);
 	curFlow= &farneback;
     //TODO: Fix this so that i dont need to use a grabber.
@@ -79,8 +80,9 @@ void testApp::update() {
         
         // int i = totalFrames % ipGrabber.size();
         ipGrabber[i]->update();
-        if(ipGrabber[i]->isFrameNew()) {
-            
+        cam.update();
+        //if(ipGrabber[i]->isFrameNew()) {
+        if(cam.isFrameNew()) {
             //Optical Flow Stuff
             
             if(panel.getValueB("useFarneback")) {
@@ -92,6 +94,31 @@ void testApp::update() {
                 farneback.setPolyN( panel.getValueF("polyN") );
                 farneback.setPolySigma( panel.getValueF("polySigma") );
                 farneback.setUseGaussian(panel.getValueB("OPTFLOW_FARNEBACK_GAUSSIAN"));
+               
+                farneback.calcOpticalFlow(cam);
+                diff = cam.getPixelsRef();
+
+                //farneback.calcOpticalFlow(ipGrabber[i]->getPixelsRef());
+                diff = ipGrabber[i]->getPixelsRef();
+                
+                if(!firstFrame){
+                    for(int y=0;y<480;y+=10){
+                        for(int x=0;x<640;x+=10){
+                            ofVec2f flowPoint;
+                            flowPoint = farneback.getFlowPosition(x, y);
+                            farneback.getFlowOffset(x, y);
+                            ofColor color =  diff.getPixelsRef().getColor(flowPoint.x, flowPoint.y);
+                            colors[y*640+x] = color;
+                            diffIP.setColor(flowPoint.x, flowPoint.y, color);
+                            
+                            
+                        }
+                    }
+                }
+
+                diffIP.reloadTexture();
+                
+                firstFrame = false;
                 
             } else {
                 curFlow = &pyrLk;
@@ -102,31 +129,36 @@ void testApp::update() {
                 pyrLk.setMaxLevel( panel.getValueI("maxLevel") );
             }
             
-            //check it out that that you can use Flow polymorphically
-            curFlow->calcOpticalFlow(ipGrabber[i]->getPixelsRef());
-            //Absolute differencing
-//            absdiff(previous, ipGrabber[i]->getPixelsRef(), diff);
-//            diff.update();
-//            copy(ipGrabber[i]->getPixelsRef(), previous);
-//            diffMean = mean(toCv(diff));
-//          diffMean *= Scalar(10);
             
-//            slitScan.addImage(diff.getPixels());
+            //check it out that that you can use Flow polymorphically
+           // curFlow->calcOpticalFlow(ipGrabber[i]->getPixelsRef());
+                
+            //Absolute differencing
+            //            absdiff(previous, ipGrabber[i]->getPixelsRef(), diff);
+            //            diff.update();
+            //            copy(ipGrabber[i]->getPixelsRef(), previous);
+            //            diffMean = mean(toCv(diff));
+            //          diffMean *= Scalar(10);
+            
+            //            slitScan.addImage(diff.getPixels());
         }
     }
-
+    
 }
 
 void testApp::draw() {
     ofBackground(0);
 	ofSetColor(255);
-//	cam.draw(0, 0);
-    ipGrabber[0]->draw(0, 0);
-    curFlow->draw(0,0,640,480);
+    cam.draw(0, 0);
+
+    farneback.draw();
+    diffIP.draw(cam.getWidth(), 0);
+    //curFlow->draw(0,0,640,480)
+    //diffIP.draw(ipGrabber[0]->getWidth(), 0 );
 	//diff.draw(0, 0);
     
 	//slitScan.getOutputImage().draw(0, 0);
-
+    
 }
 
 void testApp::keyPressed(int key){
