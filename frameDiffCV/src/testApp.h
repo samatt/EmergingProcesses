@@ -6,6 +6,7 @@
 #include "ofxIpVideoGrabber.h"
 #include "ofxXmlSettings.h"
 #include "ofxAutoControlPanel.h"
+#include "Mover.h"
 
 #define NUM_CAMERAS 1
 #define NUM_COLS 1
@@ -46,12 +47,9 @@ public:
     void videoResized(const void * sender, ofResizeEventArgs& arg);
 	ofVideoGrabber cam;
 	ofPixels previous;
-    	ofPixels previousIP;
-	ofImage diff;
 	ofImage diffIP;
     ofRectangle rect;
-    vector<ofImage> diffs;
-	
+
 	// a scalar is like an ofVec4f but normally used for storing color information
     ofxSlitScan slitScan;
 	cv::Scalar diffMean;
@@ -60,8 +58,8 @@ public:
     ofxCv::Flow* curFlow;
     ofVec2f dampenedFlow;
     Boolean firstFrame;
-    ofColor  colors[640*480];
-    
+
+    vector<Mover> pixels;
     ofxAutoControlPanel panel;
     
 };

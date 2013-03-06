@@ -18,8 +18,6 @@ void testApp::setup() {
 	panel.addSlider("polyN", 7, 5, 10, true);
 	panel.addSlider("polySigma", 1.5, 1.1, 2);
 	panel.addToggle("OPTFLOW_FARNEBACK_GAUSSIAN", false);
-	
-	panel.addToggle("useFarneback", true);
 	panel.addSlider("winSize", 32, 4, 64, true);
 	panel.addSlider("maxLevel", 3, 0, 8, true);
 	
@@ -29,15 +27,22 @@ void testApp::setup() {
     
     
     //init slitScan stuff
-    ofImage distortionMap;
-    distortionMap.loadImage("hard_noise.png");
-    slitScan.setup(640,480,30,OF_IMAGE_COLOR);
-    slitScan.setDelayMap(distortionMap);
-    slitScan.setBlending(true);
-    slitScan.setTimeDelayAndWidth(15, 15);
-    
-    
-    // initialize I[P cams and connection
+    //    ofImage distortionMap;
+    //    distortionMap.loadImage("hard_noise.png");
+    //    slitScan.setup(640,480,30,OF_IMAGE_COLOR);
+    //    slitScan.setDelayMap(distortionMap);
+    //    slitScan.setBlending(true);
+    //    slitScan.setTimeDelayAndWidth(15, 15);
+    //
+    for(int y=0;y<240;y+=1){
+        for(int x=0;x<320;x+=1){
+            Mover m = Mover();
+            m.init(0.1, x, y);
+            
+            pixels.push_back(m);
+        }
+    }
+    // initialize IP cams and connection
     loadCameras();
     for(int i = 0; i < NUM_CAMERAS; i++) {
         IPCameraDef& cam = getNextCamera();
@@ -51,12 +56,13 @@ void testApp::setup() {
         ofAddListener(c->videoResized, this, &testApp::videoResized);
         ipGrabber.push_back(c);
     }
-    diffIP.allocate(640, 480, OF_IMAGE_COLOR);
-	cam.initGrabber(640, 480);
+    //diffIP.allocate(640, 480, OF_IMAGE_COLOR);
+    diffIP.allocate(320, 240, OF_IMAGE_COLOR_ALPHA);
+	cam.initGrabber(320, 240);
 	curFlow= &farneback;
     //TODO: Fix this so that i dont need to use a grabber.
     imitate(previous, cam);
-    imitate(diff, cam);
+    //imitate(diff, cam);
 }
 
 
@@ -78,61 +84,47 @@ void testApp::videoResized(const void * sender, ofResizeEventArgs& arg) {
 void testApp::update() {
     for(size_t i = 0; i < NUM_CAMERAS; i++) {
         
-        // int i = totalFrames % ipGrabber.size();
         ipGrabber[i]->update();
+        //cout<<ipGrabber[i]->getHeight()<<","<<ipGrabber[i]->getWidth()<<endl;
         cam.update();
         //if(ipGrabber[i]->isFrameNew()) {
         if(cam.isFrameNew()) {
             //Optical Flow Stuff
             
-            if(panel.getValueB("useFarneback")) {
-                curFlow = &farneback;
-                farneback.setPyramidScale( panel.getValueF("pyrScale") );
-                farneback.setNumLevels( panel.getValueF("levels") );
-                farneback.setWindowSize( panel.getValueF("winsize") );
-                farneback.setNumIterations( panel.getValueF("iterations") );
-                farneback.setPolyN( panel.getValueF("polyN") );
-                farneback.setPolySigma( panel.getValueF("polySigma") );
-                farneback.setUseGaussian(panel.getValueB("OPTFLOW_FARNEBACK_GAUSSIAN"));
-               
-                farneback.calcOpticalFlow(cam);
-                diff = cam.getPixelsRef();
-
-                //farneback.calcOpticalFlow(ipGrabber[i]->getPixelsRef());
-                diff = ipGrabber[i]->getPixelsRef();
+            curFlow = &farneback;
+            farneback.setPyramidScale( panel.getValueF("pyrScale") );
+            farneback.setNumLevels( panel.getValueF("levels") );
+            farneback.setWindowSize( panel.getValueF("winsize") );
+            farneback.setNumIterations( panel.getValueF("iterations") );
+            farneback.setPolyN( panel.getValueF("polyN") );
+            farneback.setPolySigma( panel.getValueF("polySigma") );
+            farneback.setUseGaussian(panel.getValueB("OPTFLOW_FARNEBACK_GAUSSIAN"));
+            
+            farneback.calcOpticalFlow(cam);
+            //     ofImage test = ipGrabber[i]->getPixelsRef();
+            //     test.resize(320, 240);
+            ofPixelsRef IP = ipGrabber[i]->getPixelsRef();//test.getPixelsRef(); //diff = test;
+            //IP.resize(320, 240);
+            if(!firstFrame){
                 
-                if(!firstFrame){
-                    for(int y=0;y<480;y+=10){
-                        for(int x=0;x<640;x+=10){
-                            ofVec2f flowPoint;
-                            flowPoint = farneback.getFlowPosition(x, y);
-                            farneback.getFlowOffset(x, y);
-                            ofColor color =  diff.getPixelsRef().getColor(flowPoint.x, flowPoint.y);
-                            colors[y*640+x] = color;
-                            diffIP.setColor(flowPoint.x, flowPoint.y, color);
-                            
-                            
-                        }
+                for(int y=0;y<240;y+=1){
+                    for(int x=0;x<320;x+=1){
+                        ofVec2f flowPoint;
+                        flowPoint = farneback.getFlowPosition(x, y);
+                        ofVec2f force =  ofVec2f(x,y)- flowPoint;
+                        float mag =  force.length();
+                        ofMap(mag, 0, 400, 0, 255);
+                        ofColor color =  ipGrabber[i]->getPixelsRef().getColor(x, y);
+                        color.a = mag;
+                        diffIP.setColor(x, y, color);
+                        
                     }
                 }
-
-                diffIP.reloadTexture();
-                
-                firstFrame = false;
-                
-            } else {
-                curFlow = &pyrLk;
-                pyrLk.setMaxFeatures( panel.getValueI("maxFeatures") );
-                pyrLk.setQualityLevel( panel.getValueF("qualityLevel") );
-                pyrLk.setMinDistance( panel.getValueF("minDistance") );
-                pyrLk.setWindowSize( panel.getValueI("winSize") );
-                pyrLk.setMaxLevel( panel.getValueI("maxLevel") );
             }
             
-            
+            diffIP.reloadTexture();
+            firstFrame = false;
             //check it out that that you can use Flow polymorphically
-           // curFlow->calcOpticalFlow(ipGrabber[i]->getPixelsRef());
-                
             //Absolute differencing
             //            absdiff(previous, ipGrabber[i]->getPixelsRef(), diff);
             //            diff.update();
@@ -149,13 +141,15 @@ void testApp::update() {
 void testApp::draw() {
     ofBackground(0);
 	ofSetColor(255);
-    cam.draw(0, 0);
-
-    farneback.draw();
-    diffIP.draw(cam.getWidth(), 0);
-    //curFlow->draw(0,0,640,480)
-    //diffIP.draw(ipGrabber[0]->getWidth(), 0 );
-	//diff.draw(0, 0);
+    ofEnableAlphaBlending();
+    //cam.draw(0, 0);
+    
+    //farneback.draw(0,0);
+    // diffIP.draw(cam.getWidth(), 0);
+    
+    
+    diffIP.draw(cam.getWidth(), 0 );
+	
     
 	//slitScan.getOutputImage().draw(0, 0);
     
