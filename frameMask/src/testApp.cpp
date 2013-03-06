@@ -6,9 +6,9 @@ using namespace cv;
 void testApp::setup(){
     ofSetVerticalSync(true);
     oldestFrameIndex = 0;
-    //dampenedFlow = ofVec2f(0,0);
     buffer.resize(50);
-    ofBackground(0);
+    dampenedFlow.resize(76800);
+    ofBackground(255);
     panel.setup(ofGetWidth()/2, 800);
     
 	panel.addPanel("Optical Flow");
@@ -30,16 +30,16 @@ void testApp::setup(){
     cam.initGrabber(320, 240);
     canvas.allocate(320, 240, OF_IMAGE_COLOR_ALPHA);
     accumulation.allocate(
-                          canvas.getWidth(), //WIDTH
-                          canvas.getHeight(), //HEIGHT
+                          640, //WIDTH
+                          480, //HEIGHT
                           canvas.getPixelsRef().getImageType());//PIX TYPE
     
-    //    for (int y = 0; y<240; y++) {
-    //        for(int  x =0; x<320;x++){
-    //            canvas.setColor(x, y, ofColor(0));
-    //        }
-    //
-    //    }
+        for (int y = 0; y<240; y++) {
+            for(int  x =0; x<320;x++){
+                dampenedFlow[y*320+x] = ofVec2f(0,0);
+            }
+    
+        }
     
 }
 
@@ -61,28 +61,29 @@ void testApp::update(){
         if(!firstFrame){
             for (int y = 0; y<240; y++) {
                 for(int  x =0; x<320;x++){
-                    ofVec2f flowPoint ;
-                    flowPoint= farneback.getFlowPosition(x, y);//Offset(x, y);
+                    ofVec2f flowPoint;
+                    flowPoint= farneback.getFlowPosition(x, y);
                     ofVec2f force =  ofVec2f(x,y)- flowPoint;
-                    //                    force.normalized();
-                    //force.normalized();
-                    float mag =  force.length();
-                    //cout<<mag<<endl;
+                    
+                    dampenedFlow[y*320+x] += (force - dampenedFlow[y*320+x])*0.1;
+                    float mag =  dampenedFlow[y*320+x].length();
                     ofMap(mag, 0, 400, 0, 255);
                     ofFloatColor c = cam.getPixelsRef().getColor(x, y);
                     c.a= mag;
-                    //  ofEnableAlphaBlending();
                     canvas.setColor(x, y, c);
-                    //                      ofDisableAlphaBlending();
                     ofFloatColor currentAverage = accumulation.getColor(x, y);
                     ofFloatColor newPixel = canvas.getPixelsRef().getColor(x, y);
-                    
-                    //store the total average in a vector, since float colors are clamped to [0 - 1] range
+
+                    //averaging
                     ofVec4f currentAccumulation = totalFrames * ofVec4f(currentAverage.r,currentAverage.g,currentAverage.b,currentAverage.a);
                     
-                    currentAverage.r = (newPixel.r + currentAccumulation.x) / (totalFrames + 1);
-                    currentAverage.g = (newPixel.g + currentAccumulation.y) / (totalFrames + 1);
-                    currentAverage.b = (newPixel.b + currentAccumulation.z) / (totalFrames + 1);
+                    //only average if alpha is there.
+                    if(newPixel.a>0){
+                        currentAverage.r = (newPixel.r + currentAccumulation.x) / (totalFrames + 1);
+                        currentAverage.g = (newPixel.g + currentAccumulation.y) / (totalFrames + 1);
+                        currentAverage.b = (newPixel.b + currentAccumulation.z) / (totalFrames + 1);
+                    }
+                    
                     currentAverage.a =newPixel.a;
                     //reset the modified current average into the array
                     accumulation.setColor(x,y,currentAverage);
@@ -90,7 +91,8 @@ void testApp::update(){
             }
         }
         
-
+        //accumulation.resize(640, 480);
+        cout<<accumulation.getWidth()<<accumulation.getHeight()<<endl;
         buffer[oldestFrameIndex].setFromPixels(accumulation.getPixelsRef());
         oldestFrameIndex++;
         totalFrames++;
@@ -111,7 +113,7 @@ void testApp::draw(){
     //   cam.draw(0, 0, 320, 240);
     //   farneback.draw();
     if(buffer[oldestFrameIndex].isAllocated()){
-        buffer[oldestFrameIndex].draw(accumulation.getWidth(), 0);
+        buffer[oldestFrameIndex].draw(0, 0);
     }
     //    canvas.draw(0, 0);
     //ofDisableAlphaBlending();

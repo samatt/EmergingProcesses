@@ -29,13 +29,14 @@ public:
     ofFloatImage canvas;
     Boolean firstFrame;
     ofxAutoControlPanel panel;
-    
+
+    vector<ofVec2f> dampenedFlow;
     vector<ofFloatImage> buffer;
     int oldestFrameIndex;
 
     ofFloatImage accumulation;
     int totalFrames;
     
-    ofVec2f dampenedFlow;
+    //ofVec2f dampenedFlow;
     
 };
