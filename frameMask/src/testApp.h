@@ -24,6 +24,9 @@ public:
     void dragEvent(ofDragInfo dragInfo);
     void gotMessage(ofMessage msg);
     
+    ofFbo fbo;
+	ofMesh mesh;
+    
     ofVideoGrabber cam;
     ofxCv::FlowFarneback farneback;
     ofFloatImage canvas;
@@ -34,8 +37,11 @@ public:
     vector<ofFloatImage> buffer;
     int oldestFrameIndex;
 
-    ofFloatImage accumulation;
+    ofImage accumulation;
+    ofImage accumulation1;
     int totalFrames;
+
+
     
     //ofVec2f dampenedFlow;
     

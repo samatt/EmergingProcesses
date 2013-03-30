@@ -7,7 +7,7 @@ void testApp::setup(){
     firstFrame = true;
 	ofSetVerticalSync(true);
 	ofSetFrameRate(60);
-	ofBackground(66,66,66);
+	ofBackground(0);
     dampenedFlow.resize(76800);
 	//initialize the video grabber
 	vidGrabber.initGrabber(320,240);
@@ -34,7 +34,7 @@ void testApp::setup(){
 	//store the width and height for convenience
 	int width = vidGrabber.getWidth();
 	int height = vidGrabber.getHeight();
-    
+    fbo.allocate(width, height);
     
 	for (int y = 0; y < height; y++){
 		for (int x = 0; x<width; x++){
@@ -76,8 +76,8 @@ void testApp::update(){
             
             
             //this determines how far we extrude the mesh
-            for(int y=0;y<vidGrabber.getHeight();y+=1){
-                for(int x=0;x<vidGrabber.getWidth();x+=1){
+            for(int y=0;y<vidGrabber.getHeight();y+=5){
+                for(int x=0;x<vidGrabber.getWidth();x+=5){
                     //	for (int i=0; i<vidGrabber.getWidth()*vidGrabber.getHeight(); i++){
                     int index = x +vidGrabber.getWidth()*y;
                     ofFloatColor sampleColor = vidGrabber.getPixelsRef().getColor(x, y);
@@ -91,12 +91,13 @@ void testApp::update(){
                     flowPoint = farneback.getFlowPosition(x, y);
                     //cout<<flowPoint.x<<endl;
                     ofVec2f force =  ofVec2f(x,y)- flowPoint;
-                    dampenedFlow[y*320+x] += (force - dampenedFlow[y*320+x])*0.9;
+                    dampenedFlow[y*320+x] += (force - dampenedFlow[y*320+x])*0.1;
                     float mag =  dampenedFlow[y*320+x].length();
                     //float mag =  force.length();
-                    
+                    sampleColor.set(255);
                     ofMap(mag, 0, 400, 0, 255);
                     sampleColor.a = mag;
+
                     mainMesh.setColor(index, sampleColor);
                 }
             }
